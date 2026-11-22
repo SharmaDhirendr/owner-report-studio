@@ -214,6 +214,97 @@ const styles = StyleSheet.create({
     color: '#71717A',
     fontSize: 8,
   },
+  pageFill: {
+    flexGrow: 1,
+  },
+  insightRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    marginTop: 'auto',
+    paddingTop: 20,
+  },
+  expensePanel: {
+    flex: 1.45,
+    marginRight: 14,
+  },
+  cashPanel: {
+    flex: 1,
+  },
+  barRow: {
+    marginBottom: 9,
+  },
+  barMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 3,
+  },
+  barName: {
+    flex: 1,
+    fontSize: 8,
+    color: '#27272A',
+    paddingRight: 8,
+  },
+  barFigures: {
+    fontFamily: 'Courier',
+    fontSize: 8,
+    color: '#3F3F46',
+  },
+  barTrack: {
+    height: 7,
+    backgroundColor: '#E4E4E7',
+    borderRadius: 4,
+  },
+  barFill: {
+    height: 7,
+    borderRadius: 4,
+  },
+  cashBox: {
+    borderWidth: 1,
+    borderColor: '#E4E4E7',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+  cashLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  cashLabel: {
+    fontSize: 8,
+    color: '#3F3F46',
+    paddingRight: 8,
+  },
+  cashAmount: {
+    fontFamily: 'Courier',
+    fontSize: 8,
+    color: '#18181B',
+  },
+  cashDivider: {
+    borderTopWidth: 0.75,
+    borderTopColor: '#D4D4D8',
+    marginTop: 2,
+    marginBottom: 6,
+  },
+  cashTotalLabel: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+    color: '#18181B',
+  },
+  cashTotalAmount: {
+    fontFamily: 'Courier-Bold',
+    fontSize: 9,
+    color: '#18181B',
+  },
+  cashNote: {
+    marginTop: 8,
+    fontSize: 7,
+    lineHeight: 1.35,
+    color: '#71717A',
+  },
   ledgerHeader: {
     position: 'absolute',
     top: 18,
@@ -307,6 +398,11 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
   const accent = normalizeColor(brand.primaryColor);
   const logo = brand.logoBase64?.trim() ? brand.logoBase64 : null;
   const note = notes.trim();
+  const expenseCategories = summary.expensesByCategory.slice(0, 6);
+  const largestExpense = expenseCategories.reduce((max, item) => Math.max(max, item.amount), 0);
+  const beginningCash = 0;
+  const endingCash =
+    Math.round((beginningCash + summary.netOperatingIncome - summary.totalDistributed) * 100) / 100;
   const kpis = [
     { label: 'Gross Income', value: money.format(summary.totalIncome) },
     { label: 'Total Expenses', value: money.format(summary.totalExpenses) },
@@ -356,30 +452,91 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
           </Text>
         </View>
 
-        <Text style={styles.sectionHeading}>Property summary</Text>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.headerCell, styles.propertyName]}>Property</Text>
-          <Text style={[styles.headerCell, styles.moneyHeader]}>Income</Text>
-          <Text style={[styles.headerCell, styles.moneyHeader]}>Expenses</Text>
-          <Text style={[styles.headerCell, styles.moneyHeader]}>NOI</Text>
-        </View>
-        {summary.byProperty.length === 0 ? (
-          <Text style={styles.emptyRow}>No property activity in this period.</Text>
-        ) : (
-          summary.byProperty.map((property) => (
-            <View key={property.property} style={styles.row} wrap={false}>
-              <Text style={[styles.cell, styles.propertyName]}>{property.property}</Text>
-              <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.income)}</Text>
-              <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.expenses)}</Text>
-              <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.noi)}</Text>
+        <View style={styles.pageFill}>
+          <View>
+            <Text style={styles.sectionHeading}>Property summary</Text>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.headerCell, styles.propertyName]}>Property</Text>
+              <Text style={[styles.headerCell, styles.moneyHeader]}>Income</Text>
+              <Text style={[styles.headerCell, styles.moneyHeader]}>Expenses</Text>
+              <Text style={[styles.headerCell, styles.moneyHeader]}>NOI</Text>
             </View>
-          ))
-        )}
-        <View style={styles.totalRow} wrap={false}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.boldMoney}>{money.format(summary.totalIncome)}</Text>
-          <Text style={styles.boldMoney}>{money.format(summary.totalExpenses)}</Text>
-          <Text style={styles.boldMoney}>{money.format(summary.netOperatingIncome)}</Text>
+            {summary.byProperty.length === 0 ? (
+              <Text style={styles.emptyRow}>No property activity in this period.</Text>
+            ) : (
+              summary.byProperty.map((property) => (
+                <View key={property.property} style={styles.row} wrap={false}>
+                  <Text style={[styles.cell, styles.propertyName]}>{property.property}</Text>
+                  <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.income)}</Text>
+                  <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.expenses)}</Text>
+                  <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.noi)}</Text>
+                </View>
+              ))
+            )}
+            <View style={styles.totalRow} wrap={false}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.boldMoney}>{money.format(summary.totalIncome)}</Text>
+              <Text style={styles.boldMoney}>{money.format(summary.totalExpenses)}</Text>
+              <Text style={styles.boldMoney}>{money.format(summary.netOperatingIncome)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.insightRow}>
+            <View style={styles.expensePanel}>
+              <Text style={styles.sectionHeading}>Expense breakdown</Text>
+              {expenseCategories.length === 0 ? (
+                <Text style={styles.emptyRow}>No operating expenses this period.</Text>
+              ) : (
+                expenseCategories.map((item) => {
+                  const width =
+                    item.amount > 0 && largestExpense > 0
+                      ? Math.max(4, Math.round((item.amount / largestExpense) * 100))
+                      : 0;
+                  return (
+                    <View key={item.category} style={styles.barRow} wrap={false}>
+                      <View style={styles.barMeta}>
+                        <Text style={styles.barName}>{item.category}</Text>
+                        <Text style={styles.barFigures}>
+                          {money.format(item.amount)} · {item.percentage.toFixed(1)}%
+                        </Text>
+                      </View>
+                      <View style={styles.barTrack}>
+                        <View style={[styles.barFill, { width: `${width}%`, backgroundColor: accent }]} />
+                      </View>
+                    </View>
+                  );
+                })
+              )}
+            </View>
+
+            <View style={styles.cashPanel}>
+              <Text style={styles.sectionHeading}>Cash flow reconciliation</Text>
+              <View style={styles.cashBox} wrap={false}>
+                <View style={styles.cashLine}>
+                  <Text style={styles.cashLabel}>Beginning Cash / Reserves</Text>
+                  <Text style={styles.cashAmount}>{money.format(beginningCash)}</Text>
+                </View>
+                <View style={styles.cashLine}>
+                  <Text style={styles.cashLabel}>Net Operating Income</Text>
+                  <Text style={styles.cashAmount}>+ {money.format(summary.netOperatingIncome)}</Text>
+                </View>
+                <View style={styles.cashLine}>
+                  <Text style={styles.cashLabel}>Cash Distributed</Text>
+                  <Text style={styles.cashAmount}>− {money.format(summary.totalDistributed)}</Text>
+                </View>
+                <View style={styles.cashDivider} />
+                <View style={[styles.cashLine, { marginBottom: 0 }]}>
+                  <Text style={styles.cashTotalLabel}>Ending Cash Retained</Text>
+                  <Text style={[styles.cashTotalAmount, { color: accent }]}>
+                    {money.format(endingCash)}
+                  </Text>
+                </View>
+                <Text style={styles.cashNote}>
+                  Opening balance was not in this export, so reserves start at $0.00.
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
         <Footer brand={brand} />
       </Page>

@@ -69,13 +69,23 @@ export default function HomePage() {
         current ||
         `Operations were steady in ${brand.reportPeriod || 'October 2026'}. The portfolio collected ${money.format(sampleSummary.totalIncome)} in gross income, with net operating income of ${money.format(sampleSummary.netOperatingIncome)}.`,
     );
-    setBrand((current) => ({
-      ...current,
-      companyName: current.companyName.trim() || 'Northshore Property Group',
-      ownerName: current.ownerName.trim() || 'Harborview Holdings',
-      reportPeriod: current.reportPeriod.trim() || 'October 2026',
-      primaryColor: current.primaryColor.trim() || '#1E3A8A',
-    }));
+    setBrand((current) => {
+      const primaryColor = current.primaryColor.trim() || '#1E3A8A';
+      const next = {
+        ...current,
+        companyName: current.companyName.trim() || 'Northshore Property Group',
+        ownerName: current.ownerName.trim() || 'Harborview Holdings',
+        reportPeriod: current.reportPeriod.trim() || 'October 2026',
+        primaryColor,
+        logoBase64: current.logoBase64?.trim() ? current.logoBase64 : createPlaceholderLogo(primaryColor),
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // The in-memory brand still includes the demo logo for this download.
+      }
+      return next;
+    });
     setCurrentStep(4);
   }
 
@@ -95,10 +105,7 @@ export default function HomePage() {
       </header>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-semibold tracking-[0.16em] text-[#1E3A8A] uppercase">
-            Step {currentStep} of 4
-          </p>
-          <ol className="mt-3 flex flex-wrap gap-2">
+          <ol className="flex flex-wrap gap-2">
             {STEPS.map((step) => {
               const active = step.id === currentStep;
               const complete = step.id < currentStep;
@@ -268,6 +275,49 @@ function Step4Preview({
       </div>
     </section>
   );
+}
+
+function createPlaceholderLogo(color: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext('2d');
+  if (!context) return null;
+
+  const fill = /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '#1E3A8A';
+  context.fillStyle = fill;
+  roundedRect(context, 0, 0, 128, 128, 28);
+  context.fill();
+
+  context.fillStyle = '#FFFFFF';
+  for (const bar of [
+    { x: 26, height: 36 },
+    { x: 50, height: 58 },
+    { x: 74, height: 44 },
+  ]) {
+    roundedRect(context, bar.x, 92 - bar.height, 18, bar.height, 4);
+    context.fill();
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+function roundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.arcTo(x + width, y, x + width, y + height, radius);
+  context.arcTo(x + width, y + height, x, y + height, radius);
+  context.arcTo(x, y + height, x, y, radius);
+  context.arcTo(x, y, x + width, y, radius);
+  context.closePath();
 }
 
 function readStoredBrand(): BrandSettings | null {
