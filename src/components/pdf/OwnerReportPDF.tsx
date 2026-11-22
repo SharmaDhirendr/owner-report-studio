@@ -1,0 +1,498 @@
+import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import type { BrandSettings, RawTransaction, ReportSummary } from '@/types/report';
+
+type OwnerReportPDFProps = {
+  brand: BrandSettings;
+  summary: ReportSummary;
+  notes: string;
+};
+
+type CategoryGroup = {
+  category: string;
+  rows: RawTransaction[];
+  total: number;
+};
+
+const money = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
+
+const SECTIONS: { type: RawTransaction['type']; title: string; totalLabel: string }[] = [
+  { type: 'Income', title: 'Income', totalLabel: 'Total income' },
+  { type: 'Expense', title: 'Expenses', totalLabel: 'Total expenses' },
+  { type: 'Distribution', title: 'Distributions', totalLabel: 'Total distributed' },
+];
+
+const styles = StyleSheet.create({
+  page: {
+    paddingTop: 36,
+    paddingHorizontal: 40,
+    paddingBottom: 52,
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    color: '#18181B',
+  },
+  ledgerPage: {
+    paddingTop: 50,
+    paddingHorizontal: 40,
+    paddingBottom: 46,
+    fontFamily: 'Helvetica',
+    fontSize: 9,
+    color: '#18181B',
+  },
+  accent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
+  brandBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    paddingRight: 16,
+  },
+  logo: {
+    width: 36,
+    height: 36,
+    marginRight: 10,
+    objectFit: 'contain',
+  },
+  company: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+  owner: {
+    fontSize: 9,
+    color: '#52525B',
+  },
+  titleBlock: {
+    alignItems: 'flex-end',
+  },
+  statement: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 11,
+    marginBottom: 3,
+  },
+  period: {
+    fontSize: 9,
+    color: '#52525B',
+  },
+  kpiRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  kpiCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#E4E4E7',
+    borderRadius: 4,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 8,
+    marginRight: 8,
+  },
+  kpiCardLast: {
+    marginRight: 0,
+  },
+  kpiRule: {
+    height: 2,
+    borderRadius: 1,
+    marginBottom: 6,
+  },
+  kpiLabel: {
+    fontSize: 7,
+    color: '#71717A',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 4,
+  },
+  kpiValue: {
+    fontFamily: 'Courier-Bold',
+    fontSize: 11,
+  },
+  notesLabel: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+    color: '#3F3F46',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  notesBox: {
+    backgroundColor: '#F4F4F5',
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 18,
+  },
+  notesText: {
+    fontSize: 9,
+    lineHeight: 1.45,
+    color: '#27272A',
+  },
+  notesEmpty: {
+    fontSize: 9,
+    lineHeight: 1.45,
+    color: '#71717A',
+    fontStyle: 'italic',
+  },
+  sectionHeading: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 11,
+    marginBottom: 8,
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#F4F4F5',
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+  },
+  headerCell: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 7,
+    color: '#52525B',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E4E4E7',
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+  },
+  cell: {
+    fontSize: 8,
+    color: '#27272A',
+  },
+  propertyName: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  moneyCol: {
+    width: 78,
+    textAlign: 'right',
+    fontFamily: 'Courier',
+  },
+  moneyHeader: {
+    width: 78,
+    textAlign: 'right',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F4F4F5',
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+  },
+  totalLabel: {
+    flex: 1,
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+  },
+  boldMoney: {
+    width: 78,
+    textAlign: 'right',
+    fontFamily: 'Courier-Bold',
+    fontSize: 8,
+  },
+  emptyRow: {
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    color: '#71717A',
+    fontSize: 8,
+  },
+  ledgerHeader: {
+    position: 'absolute',
+    top: 18,
+    left: 40,
+    right: 40,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E4E4E7',
+    paddingBottom: 6,
+  },
+  ledgerTitle: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 12,
+  },
+  ledgerMeta: {
+    fontSize: 8,
+    color: '#52525B',
+  },
+  ledgerSection: {
+    marginBottom: 8,
+  },
+  ledgerSectionTitle: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 11,
+    marginBottom: 6,
+  },
+  dateCol: {
+    width: 68,
+  },
+  propertyCol: {
+    width: 108,
+    paddingRight: 6,
+  },
+  categoryCol: {
+    width: 96,
+    paddingRight: 6,
+  },
+  descriptionCol: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  subtotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E4E4E7',
+    paddingVertical: 3,
+    paddingHorizontal: 6,
+  },
+  subtotalLabel: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 8,
+  },
+  sectionTotal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+    paddingTop: 4,
+  },
+  sectionTotalLabel: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 9,
+  },
+  sectionTotalAmount: {
+    fontFamily: 'Courier-Bold',
+    fontSize: 9,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 22,
+    left: 40,
+    right: 40,
+    borderTopWidth: 0.5,
+    borderTopColor: '#E4E4E7',
+    paddingTop: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footerText: {
+    fontSize: 8,
+    color: '#71717A',
+  },
+});
+
+export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
+  const accent = normalizeColor(brand.primaryColor);
+  const logo = brand.logoBase64?.trim() ? brand.logoBase64 : null;
+  const note = notes.trim();
+  const kpis = [
+    { label: 'Gross Income', value: money.format(summary.totalIncome) },
+    { label: 'Total Expenses', value: money.format(summary.totalExpenses) },
+    { label: 'Net Operating Income', value: money.format(summary.netOperatingIncome) },
+    { label: 'Cash Distributed', value: money.format(summary.totalDistributed) },
+  ];
+
+  return (
+    <Document
+      title={`${brand.reportPeriod || 'Owner'} Statement`}
+      author={brand.companyName}
+      subject={`Monthly owner statement for ${brand.ownerName}`}
+    >
+      <Page size="LETTER" style={styles.page}>
+        <View style={[styles.accent, { backgroundColor: accent }]} fixed />
+        <View style={styles.header}>
+          <View style={styles.brandBlock}>
+            {logo ? <Image src={logo} style={styles.logo} /> : null}
+            <View>
+              <Text style={styles.company}>{brand.companyName || 'Owner statement'}</Text>
+              <Text style={styles.owner}>{brand.ownerName || 'Owner'}</Text>
+            </View>
+          </View>
+          <View style={styles.titleBlock}>
+            <Text style={[styles.statement, { color: accent }]}>Monthly Owner Statement</Text>
+            <Text style={styles.period}>{brand.reportPeriod}</Text>
+          </View>
+        </View>
+
+        <View style={styles.kpiRow}>
+          {kpis.map((kpi, index) => (
+            <View
+              key={kpi.label}
+              style={index === kpis.length - 1 ? [styles.kpiCard, styles.kpiCardLast] : styles.kpiCard}
+            >
+              <View style={[styles.kpiRule, { backgroundColor: accent }]} />
+              <Text style={styles.kpiLabel}>{kpi.label}</Text>
+              <Text style={styles.kpiValue}>{kpi.value}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={styles.notesLabel}>Manager’s notes</Text>
+        <View style={styles.notesBox}>
+          <Text style={note ? styles.notesText : styles.notesEmpty} hyphenationCallback={keepWholeWord}>
+            {note || 'No manager notes were added for this period.'}
+          </Text>
+        </View>
+
+        <Text style={styles.sectionHeading}>Property summary</Text>
+        <View style={styles.tableHeader}>
+          <Text style={[styles.headerCell, styles.propertyName]}>Property</Text>
+          <Text style={[styles.headerCell, styles.moneyHeader]}>Income</Text>
+          <Text style={[styles.headerCell, styles.moneyHeader]}>Expenses</Text>
+          <Text style={[styles.headerCell, styles.moneyHeader]}>NOI</Text>
+        </View>
+        {summary.byProperty.length === 0 ? (
+          <Text style={styles.emptyRow}>No property activity in this period.</Text>
+        ) : (
+          summary.byProperty.map((property) => (
+            <View key={property.property} style={styles.row} wrap={false}>
+              <Text style={[styles.cell, styles.propertyName]}>{property.property}</Text>
+              <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.income)}</Text>
+              <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.expenses)}</Text>
+              <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.noi)}</Text>
+            </View>
+          ))
+        )}
+        <View style={styles.totalRow} wrap={false}>
+          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.boldMoney}>{money.format(summary.totalIncome)}</Text>
+          <Text style={styles.boldMoney}>{money.format(summary.totalExpenses)}</Text>
+          <Text style={styles.boldMoney}>{money.format(summary.netOperatingIncome)}</Text>
+        </View>
+        <Footer brand={brand} />
+      </Page>
+
+      <Page size="LETTER" style={styles.ledgerPage}>
+        <View style={[styles.accent, { backgroundColor: accent }]} fixed />
+        <View style={styles.ledgerHeader} fixed>
+          <Text style={[styles.ledgerTitle, { color: accent }]}>Itemized ledger</Text>
+          <Text style={styles.ledgerMeta}>
+            {brand.companyName} · {brand.reportPeriod}
+          </Text>
+        </View>
+
+        {SECTIONS.map((section) => {
+          const groups = categoryGroups(summary.transactions, section.type);
+          if (groups.length === 0) return null;
+          const sectionTotal = sumAmounts(groups.flatMap((group) => group.rows));
+          return (
+            <View key={section.type} style={styles.ledgerSection}>
+              <Text style={[styles.ledgerSectionTitle, { color: accent }]}>{section.title}</Text>
+              <View style={styles.tableHeader}>
+                <Text style={[styles.headerCell, styles.dateCol]}>Date</Text>
+                <Text style={[styles.headerCell, styles.propertyCol]}>Property</Text>
+                <Text style={[styles.headerCell, styles.categoryCol]}>Category</Text>
+                <Text style={[styles.headerCell, styles.descriptionCol]}>Description</Text>
+                <Text style={[styles.headerCell, styles.moneyHeader]}>Amount</Text>
+              </View>
+              {groups.map((group) => (
+                <View key={group.category}>
+                  {group.rows.map((transaction, index) => (
+                    <View
+                      key={`${transaction.date}-${transaction.property}-${transaction.description}-${index}`}
+                      style={styles.row}
+                      wrap={false}
+                    >
+                      <Text style={[styles.cell, styles.dateCol]}>{formatDate(transaction.date)}</Text>
+                      <Text style={[styles.cell, styles.propertyCol]}>{transaction.property}</Text>
+                      <Text style={[styles.cell, styles.categoryCol]}>{transaction.category}</Text>
+                      <Text style={[styles.cell, styles.descriptionCol]} hyphenationCallback={keepWholeWord}>
+                        {transaction.description}
+                      </Text>
+                      <Text style={[styles.cell, styles.moneyCol]}>{money.format(transaction.amount)}</Text>
+                    </View>
+                  ))}
+                  <View style={styles.subtotalRow} wrap={false}>
+                    <Text style={styles.subtotalLabel}>{group.category} subtotal</Text>
+                    <Text style={styles.boldMoney}>{money.format(group.total)}</Text>
+                  </View>
+                </View>
+              ))}
+              <View style={styles.sectionTotal} wrap={false}>
+                <Text style={styles.sectionTotalLabel}>{section.totalLabel}</Text>
+                <Text style={styles.sectionTotalAmount}>{money.format(sectionTotal)}</Text>
+              </View>
+            </View>
+          );
+        })}
+        <Footer brand={brand} />
+      </Page>
+    </Document>
+  );
+}
+
+function Footer({ brand }: { brand: BrandSettings }) {
+  return (
+    <View style={styles.footer} fixed>
+      <Text style={styles.footerText}>{brand.companyName} · Monthly Owner Statement</Text>
+      <Text
+        style={styles.footerText}
+        render={({ pageNumber, totalPages }) => `${pageNumber} of ${totalPages}`}
+      />
+    </View>
+  );
+}
+
+function categoryGroups(transactions: RawTransaction[], type: RawTransaction['type']): CategoryGroup[] {
+  const buckets = new Map<string, RawTransaction[]>();
+  for (const transaction of transactions) {
+    if (transaction.type !== type) continue;
+    const category = transaction.category.trim() || 'Uncategorized';
+    const rows = buckets.get(category) ?? [];
+    rows.push(transaction);
+    buckets.set(category, rows);
+  }
+
+  return Array.from(buckets, ([category, rows]) => {
+    const sorted = [...rows].sort(
+      (a, b) => a.date.localeCompare(b.date) || a.property.localeCompare(b.property),
+    );
+    return { category, rows: sorted, total: sumAmounts(sorted) };
+  }).sort((a, b) => b.total - a.total || a.category.localeCompare(b.category));
+}
+
+function sumAmounts(rows: RawTransaction[]): number {
+  return Math.round(rows.reduce((sum, row) => sum + row.amount, 0) * 100) / 100;
+}
+
+function formatDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (!match) return value;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+function normalizeColor(value: string): string {
+  return /^#[0-9A-Fa-f]{6}$/.test(value.trim()) ? value.trim() : '#1E3A8A';
+}
+
+function keepWholeWord(word: string): string[] {
+  return [word];
+}
