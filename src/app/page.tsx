@@ -93,7 +93,7 @@ export default function HomePage() {
           Your data stays in your browser. Nothing is uploaded to a server.
         </p>
       </header>
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold tracking-[0.16em] text-[#1E3A8A] uppercase">
             Step {currentStep} of 4
@@ -121,17 +121,26 @@ export default function HomePage() {
           </ol>
         </div>
         {currentStep < 4 ? (
-          <div className="flex flex-col items-start gap-1.5 sm:items-end">
+          <div className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 sm:w-72 dark:border-zinc-800 dark:bg-zinc-900/80">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">Try example</p>
+              <span className="rounded-full bg-[#1E3A8A]/10 px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-[#1E3A8A] uppercase dark:bg-[#1E3A8A]/30 dark:text-[#BFDBFE]">
+                Demo
+              </span>
+            </div>
             <button
               type="button"
               onClick={loadSampleReport}
-              className="inline-flex items-center gap-2 self-start rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+              className="mt-2.5 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#1E3A8A]/20 bg-[#1E3A8A]/10 px-3 py-2 text-sm font-medium text-[#1E3A8A] transition hover:bg-[#1E3A8A]/15 dark:border-[#93C5FD]/20 dark:bg-[#1E3A8A]/35 dark:text-[#DBEAFE] dark:hover:bg-[#1E3A8A]/50"
             >
-              <FileSpreadsheet className="size-4" aria-hidden="true" />
+              <span className="flex size-6 items-center justify-center rounded-md bg-[#1E3A8A]/15 dark:bg-white/10">
+                <FileSpreadsheet className="size-3.5" aria-hidden="true" />
+              </span>
               Load sample data
             </button>
-            <p className="max-w-56 text-xs leading-4 text-zinc-500 sm:text-right dark:text-zinc-400">
-              See a finished example report instantly (uses sample data)
+            <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+              See a finished example report instantly
+              <span className="block text-zinc-400 dark:text-zinc-500">(uses sample data)</span>
             </p>
           </div>
         ) : null}
