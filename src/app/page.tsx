@@ -81,6 +81,18 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-10">
+      <header className="mb-10 text-center">
+        <h1 className="text-3xl font-semibold tracking-tight text-balance text-zinc-950 sm:text-4xl dark:text-zinc-50">
+          Turn AppFolio & Buildium exports into branded owner reports
+        </h1>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-pretty text-zinc-600 dark:text-zinc-400">
+          Upload your CSV or Excel export, add your branding, and download a clean PDF owner
+          statement in under 2 minutes.
+        </p>
+        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
+          Your data stays in your browser. Nothing is uploaded to a server.
+        </p>
+      </header>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold tracking-[0.16em] text-[#1E3A8A] uppercase">
