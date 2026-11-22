@@ -109,14 +109,19 @@ export default function HomePage() {
           </ol>
         </div>
         {currentStep < 4 ? (
-          <button
-            type="button"
-            onClick={loadSampleReport}
-            className="inline-flex items-center gap-2 self-start rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
-          >
-            <FileSpreadsheet className="size-4" aria-hidden="true" />
-            Load sample data
-          </button>
+          <div className="flex flex-col items-start gap-1.5 sm:items-end">
+            <button
+              type="button"
+              onClick={loadSampleReport}
+              className="inline-flex items-center gap-2 self-start rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            >
+              <FileSpreadsheet className="size-4" aria-hidden="true" />
+              Load sample data
+            </button>
+            <p className="max-w-56 text-xs leading-4 text-zinc-500 sm:text-right dark:text-zinc-400">
+              See a finished example report instantly (uses sample data)
+            </p>
+          </div>
         ) : null}
       </div>
 
