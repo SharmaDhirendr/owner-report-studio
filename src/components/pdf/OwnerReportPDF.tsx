@@ -214,14 +214,10 @@ const styles = StyleSheet.create({
     color: '#71717A',
     fontSize: 8,
   },
-  pageFill: {
-    flexGrow: 1,
-  },
   insightRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
-    marginTop: 'auto',
-    paddingTop: 20,
+    marginTop: 18,
   },
   expensePanel: {
     flex: 1.45,
@@ -452,9 +448,8 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
           </Text>
         </View>
 
-        <View style={styles.pageFill}>
-          <View>
-            <Text style={styles.sectionHeading}>Property summary</Text>
+        <View>
+          <Text style={styles.sectionHeading}>Property summary</Text>
             <View style={styles.tableHeader}>
               <Text style={[styles.headerCell, styles.propertyName]}>Property</Text>
               <Text style={[styles.headerCell, styles.moneyHeader]}>Income</Text>
@@ -478,10 +473,10 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
               <Text style={styles.boldMoney}>{money.format(summary.totalIncome)}</Text>
               <Text style={styles.boldMoney}>{money.format(summary.totalExpenses)}</Text>
               <Text style={styles.boldMoney}>{money.format(summary.netOperatingIncome)}</Text>
-            </View>
           </View>
+        </View>
 
-          <View style={styles.insightRow}>
+        <View style={styles.insightRow}>
             <View style={styles.expensePanel}>
               <Text style={styles.sectionHeading}>Expense breakdown</Text>
               {expenseCategories.length === 0 ? (
@@ -537,7 +532,6 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
               </View>
             </View>
           </View>
-        </View>
         <Footer brand={brand} />
       </Page>
 
