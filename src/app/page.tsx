@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { ArrowRight, FileSpreadsheet } from 'lucide-react';
 import { Step1BrandSetup } from '@/components/Step1BrandSetup';
 import { Step2UploadMap } from '@/components/Step2UploadMap';
 import { Step3ManagerNotes } from '@/components/Step3ManagerNotes';
 import { calculateReportSummary } from '@/lib/calculator';
+import { emptyBrand, DEFAULT_PRIMARY_COLOR, isSamplePrefill, sanitizeBrand, visiblePrimaryColor } from '@/lib/brandDefaults';
 import { sampleTransactions } from '@/lib/sampleData';
 import type { BrandSettings, RawTransaction, ReportSummary } from '@/types/report';
 
@@ -33,14 +34,6 @@ const STEPS: { id: WizardStep; label: string }[] = [
   { id: 4, label: 'Download' },
 ];
 
-const emptyBrand: BrandSettings = {
-  companyName: '',
-  logoBase64: null,
-  primaryColor: '#1E3A8A',
-  reportPeriod: '',
-  ownerName: '',
-};
-
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 const CONTACT_EMAIL = 'dhirusharma175@gmail.com';
 const FEEDBACK_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Owner Report Feedback')}`;
@@ -51,6 +44,27 @@ export default function HomePage() {
   const [transactions, setTransactions] = useState<RawTransaction[]>([]);
   const [summary, setSummary] = useState<ReportSummary | null>(null);
   const [notes, setNotes] = useState('');
+  const downloadSectionRef = useRef<HTMLDivElement>(null);
+  const pendingDownloadScroll = useRef(false);
+
+  useEffect(() => {
+    if (!pendingDownloadScroll.current || currentStep !== 4 || !summary) return;
+    const section = downloadSectionRef.current;
+    if (!section) return;
+    pendingDownloadScroll.current = false;
+    requestAnimationFrame(() => {
+      const margin = 16;
+      const sectionTop = section.getBoundingClientRect().top + window.scrollY - margin;
+      const actions = section.querySelector<HTMLElement>('[data-download-actions]');
+      let top = sectionTop;
+      if (actions) {
+        const actionsBottom = actions.getBoundingClientRect().bottom + window.scrollY + margin;
+        const showActions = actionsBottom - window.innerHeight;
+        if (showActions > top) top = showActions;
+      }
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+  }, [currentStep, summary]);
 
   useEffect(() => {
     const stored = readStoredBrand();
@@ -72,8 +86,8 @@ export default function HomePage() {
         `Operations were steady in ${brand.reportPeriod || 'October 2026'}. The portfolio collected ${money.format(sampleSummary.totalIncome)} in gross income, with net operating income of ${money.format(sampleSummary.netOperatingIncome)}.`,
     );
     setBrand((current) => {
-      const primaryColor = current.primaryColor.trim() || '#1E3A8A';
-      const next = {
+      const primaryColor = visiblePrimaryColor(current.primaryColor);
+      return {
         ...current,
         companyName: current.companyName.trim() || 'Northshore Property Group',
         ownerName: current.ownerName.trim() || 'Harborview Holdings',
@@ -81,13 +95,8 @@ export default function HomePage() {
         primaryColor,
         logoBase64: current.logoBase64?.trim() ? current.logoBase64 : createPlaceholderLogo(primaryColor),
       };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // The in-memory brand still includes the demo logo for this download.
-      }
-      return next;
     });
+    pendingDownloadScroll.current = true;
     setCurrentStep(4);
   }
 
@@ -96,6 +105,16 @@ export default function HomePage() {
     setSummary(null);
     setNotes('');
     setCurrentStep(1);
+    setBrand((current) => {
+      const stored = readStoredBrand();
+      const next = isSamplePrefill(current) && stored ? stored : sanitizeBrand(current);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // The form still resets in memory when storage is unavailable.
+      }
+      return next;
+    });
   }
 
   return (
@@ -212,13 +231,15 @@ export default function HomePage() {
       ) : null}
 
       {currentStep === 4 && summary ? (
-        <Step4Preview
-          brand={brand}
-          summary={summary}
-          notes={notes}
-          onBack={() => setCurrentStep(3)}
-          onStartOver={startOver}
-        />
+        <div ref={downloadSectionRef} className="scroll-mt-4">
+          <Step4Preview
+            brand={brand}
+            summary={summary}
+            notes={notes}
+            onBack={() => setCurrentStep(3)}
+            onStartOver={startOver}
+          />
+        </div>
       ) : null}
       <footer className="mt-12 border-t border-zinc-200 pt-6 text-sm text-zinc-700 sm:mt-16 dark:border-zinc-800 dark:text-zinc-300">
         <p className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
@@ -239,6 +260,64 @@ export default function HomePage() {
 }
 
 function ExampleReportPreview() {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
+
+  return (
+    <>
+      <figure className="mx-auto w-full max-w-sm shrink-0 lg:mx-0">
+        <figcaption className="mb-2 text-center text-xs font-semibold tracking-[0.14em] text-zinc-700 uppercase dark:text-zinc-200">
+          Example report
+        </figcaption>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="w-full rounded-xl text-left transition hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+        >
+          <ExampleReportCard size="compact" />
+          <span className="mt-2 block text-center text-sm font-medium text-[#1E3A8A] dark:text-[#93C5FD]">
+            View larger
+          </span>
+        </button>
+      </figure>
+      {open ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 sm:items-center sm:p-6"
+          onClick={() => setOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Example owner report"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ExampleReportCard size="large" />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function ExampleReportCard({ size }: { size: 'compact' | 'large' }) {
   const figures = [
     ['Gross income', '$10,600'],
     ['Expenses', '$2,459'],
@@ -250,45 +329,52 @@ function ExampleReportPreview() {
     ['Oak Ave 4-Plex', '$3,762'],
     ['Pine Rd Single Family', '$1,629'],
   ];
+  const large = size === 'large';
 
   return (
-    <figure className="mx-auto w-full max-w-64 shrink-0 lg:mx-0">
-      <figcaption className="mb-2 text-center text-xs font-semibold tracking-[0.14em] text-zinc-700 uppercase dark:text-zinc-200">
-        Example report
-      </figcaption>
-      <div className="overflow-hidden rounded-lg border border-zinc-300 bg-white text-zinc-900 shadow-xl dark:border-zinc-600">
-        <div className="h-1.5 bg-[#1E3A8A]" />
-        <div className="space-y-2.5 p-3">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-[10px] leading-tight font-bold">Northshore Property Group</p>
-              <p className="mt-0.5 text-[8px] text-zinc-600">Harborview Holdings</p>
-            </div>
-            <p className="text-right text-[8px] leading-tight font-semibold text-[#1E3A8A]">
-              Monthly Owner
-              <br />
-              Statement
+    <div className="overflow-hidden rounded-xl border border-zinc-300 bg-white text-zinc-900 shadow-xl dark:border-zinc-600">
+      <div className={large ? 'h-2 bg-[#2563EB]' : 'h-1.5 bg-[#2563EB]'} />
+      <div className={large ? 'space-y-4 p-5 sm:p-6' : 'space-y-3 p-4'}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className={large ? 'text-lg leading-tight font-bold' : 'text-sm leading-tight font-bold'}>
+              Northshore Property Group
+            </p>
+            <p className={large ? 'mt-1 text-sm text-zinc-600' : 'mt-0.5 text-xs text-zinc-600'}>
+              Harborview Holdings
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-1">
-            {figures.map(([label, value]) => (
-              <div key={label} className="rounded border border-zinc-200 px-1.5 py-1">
-                <p className="text-[7px] tracking-wide text-zinc-500 uppercase">{label}</p>
-                <p className="text-[9px] font-semibold">{value}</p>
-              </div>
-            ))}
-          </div>
-          <div className="space-y-1 border-t border-zinc-200 pt-2">
-            {properties.map(([name, noi]) => (
-              <div key={name} className="flex items-center justify-between gap-2 text-[8px]">
-                <span className="truncate text-zinc-700">{name}</span>
-                <span className="font-semibold">{noi}</span>
-              </div>
-            ))}
-          </div>
+          <p
+            className={`text-right font-semibold text-[#2563EB] ${large ? 'text-sm leading-5' : 'text-xs leading-4'}`}
+          >
+            Monthly Owner
+            <br />
+            Statement
+          </p>
+        </div>
+        <div className={large ? 'grid grid-cols-2 gap-2' : 'grid grid-cols-2 gap-1.5'}>
+          {figures.map(([label, value]) => (
+            <div key={label} className={`rounded border border-zinc-200 ${large ? 'px-3 py-2' : 'px-2 py-1.5'}`}>
+              <p className={`tracking-wide text-zinc-500 uppercase ${large ? 'text-xs' : 'text-[10px]'}`}>
+                {label}
+              </p>
+              <p className={large ? 'text-base font-semibold' : 'text-sm font-semibold'}>{value}</p>
+            </div>
+          ))}
+        </div>
+        <div className={`space-y-1.5 border-t border-zinc-200 ${large ? 'pt-3' : 'pt-2'}`}>
+          {properties.map(([name, noi]) => (
+            <div
+              key={name}
+              className={`flex items-center justify-between gap-3 ${large ? 'text-sm' : 'text-xs'}`}
+            >
+              <span className="min-w-0 break-words text-zinc-700">{name}</span>
+              <span className="shrink-0 font-semibold">{noi}</span>
+            </div>
+          ))}
         </div>
       </div>
-    </figure>
+    </div>
   );
 }
 
@@ -371,7 +457,7 @@ function Step4Preview({
           </ul>
         </div>
 
-        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+        <div data-download-actions className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={onBack}
@@ -408,7 +494,7 @@ function createPlaceholderLogo(color: string): string | null {
   const context = canvas.getContext('2d');
   if (!context) return null;
 
-  const fill = /^#[0-9A-Fa-f]{6}$/.test(color) ? color : '#1E3A8A';
+  const fill = /^#[0-9A-Fa-f]{6}$/.test(color) ? color : DEFAULT_PRIMARY_COLOR;
   context.fillStyle = fill;
   roundedRect(context, 0, 0, 128, 128, 28);
   context.fill();
@@ -459,13 +545,13 @@ function readStoredBrand(): BrandSettings | null {
     ) {
       return null;
     }
-    return {
+    return sanitizeBrand({
       companyName: record.companyName,
       logoBase64: record.logoBase64,
-      primaryColor: record.primaryColor || '#1E3A8A',
+      primaryColor: record.primaryColor,
       reportPeriod: record.reportPeriod,
       ownerName: record.ownerName,
-    };
+    });
   } catch {
     return null;
   }

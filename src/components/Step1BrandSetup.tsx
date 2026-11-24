@@ -2,10 +2,10 @@
 
 import { useEffect, useId, useRef, type CSSProperties, type ChangeEvent } from 'react';
 import { Building, CalendarRange, Palette, Upload, User, X } from 'lucide-react';
+import { DEFAULT_PRIMARY_COLOR, sanitizeBrand } from '@/lib/brandDefaults';
 import type { BrandSettings } from '@/types/report';
 
 const STORAGE_KEY = 'owner-report-brand';
-const DEFAULT_PRIMARY_COLOR = '#1E3A8A';
 
 type Step1BrandSetupProps = {
   settings: BrandSettings;
@@ -31,24 +31,30 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
   settingsRef.current = settings;
 
   useEffect(() => {
-    const saved = readBrandSettings();
-    if (saved) {
-      const next: BrandSettings = {
-        ...saved,
-        primaryColor: normalizeHex(saved.primaryColor) ?? DEFAULT_PRIMARY_COLOR,
-      };
-      pendingLoad.current = JSON.stringify(next);
-      onChangeRef.current(next);
+    const current = settingsRef.current;
+    const untouched =
+      !current.companyName.trim() &&
+      !current.ownerName.trim() &&
+      !current.reportPeriod.trim() &&
+      !current.logoBase64;
+
+    if (!untouched) {
+      pendingLoad.current = JSON.stringify(current);
       return;
     }
 
-    const current = settingsRef.current;
-    const primaryColor = normalizeHex(current.primaryColor) ?? DEFAULT_PRIMARY_COLOR;
-    const next = primaryColor === current.primaryColor ? current : { ...current, primaryColor };
+    const saved = readBrandSettings();
+    const source = saved ?? current;
+    const next = sanitizeBrand(source);
     pendingLoad.current = JSON.stringify(next);
-    if (next !== current) {
-      onChangeRef.current(next);
+    if (next === source) return;
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // The form still shows the corrected brand if storage is unavailable.
     }
+    onChangeRef.current(next);
   }, []);
 
   useEffect(() => {
@@ -104,7 +110,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
           Brand setup
         </h2>
-        <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-300">
           Company details and colors used on the owner report.
         </p>
       </header>

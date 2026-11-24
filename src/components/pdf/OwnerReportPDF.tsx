@@ -1,4 +1,5 @@
 import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { DEFAULT_PRIMARY_COLOR } from '@/lib/brandDefaults';
 import type { BrandSettings, RawTransaction, ReportSummary } from '@/types/report';
 
 type OwnerReportPDFProps = {
@@ -690,7 +691,7 @@ function amountStyle(value: number, showSign = false, positiveColor?: string) {
 }
 
 function normalizeColor(value: string): string {
-  return /^#[0-9A-Fa-f]{6}$/.test(value.trim()) ? value.trim() : '#1E3A8A';
+  return /^#[0-9A-Fa-f]{6}$/.test(value.trim()) ? value.trim() : DEFAULT_PRIMARY_COLOR;
 }
 
 function keepWholeWord(word: string): string[] {
