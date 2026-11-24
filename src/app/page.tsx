@@ -42,7 +42,7 @@ const emptyBrand: BrandSettings = {
 };
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-const CONTACT_EMAIL = 'your-email@example.com';
+const CONTACT_EMAIL = 'dhirusharma175@gmail.com';
 const FEEDBACK_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Owner Report Feedback')}`;
 
 export default function HomePage() {
@@ -221,7 +221,7 @@ export default function HomePage() {
         />
       ) : null}
       <footer className="mt-16 border-t border-zinc-200 pt-6 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
-        Built by [Your Name] ·{' '}
+        Built by Dhirendra Sharma ·{' '}
         <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-[#1E3A8A] hover:underline dark:text-[#93C5FD]">
           {CONTACT_EMAIL}
         </a>
