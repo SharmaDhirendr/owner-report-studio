@@ -24,6 +24,7 @@ const SECTIONS: { type: RawTransaction['type']; title: string; totalLabel: strin
   { type: 'Opening', title: 'Opening balance', totalLabel: 'Beginning cash' },
   { type: 'Income', title: 'Income', totalLabel: 'Total income' },
   { type: 'Expense', title: 'Expenses', totalLabel: 'Total expenses' },
+  { type: 'Contribution', title: 'Owner Contributions', totalLabel: 'Total contributions' },
   { type: 'Distribution', title: 'Distributions', totalLabel: 'Total distributed' },
 ];
 
@@ -401,8 +402,11 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
   const largestExpense = expenseCategories.reduce((max, item) => Math.max(max, item.amount), 0);
   const hasOpeningBalance = summary.openingBalance !== undefined;
   const beginningCash = summary.openingBalance ?? 0;
+  const contributions = summary.totalContributions ?? 0;
   const endingCash =
-    Math.round((beginningCash + summary.netOperatingIncome - summary.totalDistributed) * 100) / 100;
+    Math.round(
+      (beginningCash + summary.netOperatingIncome + contributions - summary.totalDistributed) * 100,
+    ) / 100;
   const kpis = [
     { label: 'Gross Income', value: summary.totalIncome },
     { label: 'Total Expenses', value: summary.totalExpenses },
@@ -529,6 +533,14 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
                     {signedAmount(summary.netOperatingIncome, '+')}
                   </Text>
                 </View>
+                {contributions !== 0 ? (
+                  <View style={styles.cashLine}>
+                    <Text style={styles.cashLabel}>Owner Contributions</Text>
+                    <Text style={[styles.cashAmount, amountStyle(contributions, true)]}>
+                      {signedAmount(contributions, '+')}
+                    </Text>
+                  </View>
+                ) : null}
                 <View style={styles.cashLine}>
                   <Text style={styles.cashLabel}>Cash Distributed</Text>
                   <Text style={styles.cashAmount}>− {money.format(summary.totalDistributed)}</Text>

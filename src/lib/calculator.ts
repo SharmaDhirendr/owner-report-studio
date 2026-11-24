@@ -1,3 +1,4 @@
+import { isOwnerContribution } from '@/lib/contribution';
 import { isOpeningBalance } from '@/lib/openingBalance';
 import type { RawTransaction, ReportSummary } from '@/types/report';
 
@@ -10,19 +11,32 @@ export function calculateReportSummary(transactions: RawTransaction[]): ReportSu
   let totalExpenses = 0;
   let totalDistributed = 0;
   let openingBalance: number | undefined;
+  let totalContributions: number | undefined;
 
   const propertyTotals = new Map<string, { income: number; expenses: number }>();
   const expenseTotals = new Map<string, number>();
-  const normalized = transactions.map((transaction) =>
-    transaction.type === 'Opening' ||
-    isOpeningBalance(transaction.category, transaction.description)
-      ? { ...transaction, type: 'Opening' as const }
-      : transaction,
-  );
+  const normalized = transactions.map((transaction) => {
+    if (
+      transaction.type === 'Opening' ||
+      isOpeningBalance(transaction.category, transaction.description)
+    ) {
+      return transaction.type === 'Opening' ? transaction : { ...transaction, type: 'Opening' as const };
+    }
+    if (transaction.type === 'Contribution' || isOwnerContribution(transaction.category)) {
+      return transaction.type === 'Contribution'
+        ? transaction
+        : { ...transaction, type: 'Contribution' as const };
+    }
+    return transaction;
+  });
 
   for (const transaction of normalized) {
     if (transaction.type === 'Opening') {
       openingBalance = toCents((openingBalance ?? 0) + transaction.amount);
+      continue;
+    }
+    if (transaction.type === 'Contribution') {
+      totalContributions = toCents((totalContributions ?? 0) + transaction.amount);
       continue;
     }
 
@@ -62,6 +76,7 @@ export function calculateReportSummary(transactions: RawTransaction[]): ReportSu
     netOperatingIncome: toCents(roundedIncome - roundedExpenses),
     totalDistributed: toCents(totalDistributed),
     ...(openingBalance !== undefined ? { openingBalance } : {}),
+    ...(totalContributions !== undefined ? { totalContributions } : {}),
     byProperty: Array.from(propertyTotals.entries()).map(([property, totals]) => {
       const income = toCents(totals.income);
       const expenses = toCents(totals.expenses);

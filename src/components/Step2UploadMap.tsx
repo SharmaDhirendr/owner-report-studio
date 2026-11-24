@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from 'rea
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { ArrowLeft, ArrowRight, FileSpreadsheet, Table2, Upload } from 'lucide-react';
+import { isOwnerContribution } from '@/lib/contribution';
 import { isOpeningBalance } from '@/lib/openingBalance';
 import type { ColumnMapping, RawTransaction } from '@/types/report';
 import { sampleTransactions } from '@/lib/sampleData';
@@ -409,7 +410,10 @@ function rowsToTransactions(rows: Record<string, unknown>[], mapping: ColumnMapp
       category,
       description,
       type,
-      amount: type === 'Opening' && parsed.negative ? -parsed.amount : parsed.amount,
+      amount:
+        (type === 'Opening' || type === 'Contribution') && parsed.negative
+          ? -parsed.amount
+          : parsed.amount,
     });
   }
 
@@ -423,6 +427,7 @@ function classifyType(
   negative: boolean,
 ): RawTransaction['type'] {
   if (isOpeningBalance(typeText, category, description)) return 'Opening';
+  if (isOwnerContribution(typeText, category)) return 'Contribution';
 
   const combined = `${typeText} ${category} ${description}`.toLowerCase();
   if (combined.includes('distribution') || combined.includes('owner draw')) return 'Distribution';
