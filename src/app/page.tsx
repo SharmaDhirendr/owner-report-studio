@@ -89,6 +89,13 @@ export default function HomePage() {
     setCurrentStep(4);
   }
 
+  function startOver() {
+    setTransactions([]);
+    setSummary(null);
+    setNotes('');
+    setCurrentStep(1);
+  }
+
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-10">
       <header className="mb-10 text-center">
@@ -126,6 +133,15 @@ export default function HomePage() {
               );
             })}
           </ol>
+          {currentStep > 1 ? (
+            <button
+              type="button"
+              onClick={startOver}
+              className="mt-3 text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              Start over
+            </button>
+          ) : null}
         </div>
         {currentStep < 4 ? (
           <div className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 sm:w-72 dark:border-zinc-800 dark:bg-zinc-900/80">
@@ -193,6 +209,7 @@ export default function HomePage() {
           summary={summary}
           notes={notes}
           onBack={() => setCurrentStep(3)}
+          onStartOver={startOver}
         />
       ) : null}
     </main>
@@ -204,11 +221,13 @@ function Step4Preview({
   summary,
   notes,
   onBack,
+  onStartOver,
 }: {
   brand: BrandSettings;
   summary: ReportSummary;
   notes: string;
   onBack: () => void;
+  onStartOver: () => void;
 }) {
   const figures = [
     { label: 'Gross Income', value: money.format(summary.totalIncome), negative: false },
@@ -284,7 +303,16 @@ function Step4Preview({
           >
             Back
           </button>
-          <DownloadStatement brand={brand} summary={summary} notes={notes} />
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onStartOver}
+              className="inline-flex items-center rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              New report
+            </button>
+            <DownloadStatement brand={brand} summary={summary} notes={notes} />
+          </div>
         </div>
       </div>
     </section>
