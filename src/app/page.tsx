@@ -42,6 +42,8 @@ const emptyBrand: BrandSettings = {
 };
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const CONTACT_EMAIL = 'your-email@example.com';
+const FEEDBACK_MAILTO = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent('Owner Report Feedback')}`;
 
 export default function HomePage() {
   const [currentStep, setCurrentStep] = useState<WizardStep>(1);
@@ -97,75 +99,81 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 py-10">
-      <header className="mb-10 text-center">
-        <h1 className="text-3xl font-semibold tracking-tight text-balance text-zinc-950 sm:text-4xl dark:text-zinc-50">
-          Turn AppFolio & Buildium exports into branded owner reports
-        </h1>
-        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-pretty text-zinc-600 dark:text-zinc-400">
-          Upload your CSV or Excel export, add your branding, and download a clean PDF owner
-          statement in under 2 minutes.
-        </p>
-        <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-          Your data stays in your browser. Nothing is uploaded to a server.
-        </p>
-      </header>
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <ol className="flex flex-wrap gap-2">
-            {STEPS.map((step) => {
-              const active = step.id === currentStep;
-              const complete = step.id < currentStep;
-              return (
-                <li
-                  key={step.id}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
-                    active
-                      ? 'border-[#1E3A8A] bg-[#1E3A8A] text-white'
-                      : complete
-                        ? 'border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200'
-                        : 'border-zinc-200 bg-zinc-50 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-500'
-                  }`}
-                >
-                  <span>{step.id}</span>
-                  {step.label}
-                </li>
-              );
-            })}
-          </ol>
-          {currentStep > 1 ? (
-            <button
-              type="button"
-              onClick={startOver}
-              className="mt-3 text-xs font-medium text-zinc-500 underline-offset-2 hover:text-zinc-800 hover:underline dark:text-zinc-400 dark:hover:text-zinc-200"
-            >
-              Start over
-            </button>
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-10">
+      <div className="mb-6 flex justify-end">
+        <a
+          href={FEEDBACK_MAILTO}
+          className="text-sm font-medium text-[#1E3A8A] underline-offset-2 hover:underline dark:text-[#93C5FD]"
+        >
+          Give feedback
+        </a>
+      </div>
+      <header className="mb-10 flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-xl text-center lg:text-left">
+          <h1 className="text-3xl font-semibold tracking-tight text-balance text-zinc-950 sm:text-4xl dark:text-zinc-50">
+            Turn AppFolio & Buildium exports into branded owner reports
+          </h1>
+          <p className="mt-3 text-base leading-7 text-pretty text-zinc-700 dark:text-zinc-200">
+            Upload your CSV or Excel export, add your branding, and download a clean PDF owner
+            statement in under 2 minutes.
+          </p>
+          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+            Your data stays in your browser. Nothing is uploaded to a server.
+          </p>
+          {currentStep < 4 ? (
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={loadSampleReport}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#1E40AF]"
+              >
+                <FileSpreadsheet className="size-5" aria-hidden="true" />
+                Load sample data
+              </button>
+              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                See a finished example report instantly (uses sample data)
+              </p>
+            </div>
           ) : null}
         </div>
-        {currentStep < 4 ? (
-          <div className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 sm:w-72 dark:border-zinc-800 dark:bg-zinc-900/80">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-medium text-zinc-700 dark:text-zinc-200">Try example</p>
-              <span className="rounded-full bg-[#1E3A8A]/10 px-2 py-0.5 text-[10px] font-semibold tracking-[0.14em] text-[#1E3A8A] uppercase dark:bg-[#1E3A8A]/30 dark:text-[#BFDBFE]">
-                Demo
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={loadSampleReport}
-              className="mt-2.5 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#1E3A8A]/20 bg-[#1E3A8A]/10 px-3 py-2 text-sm font-medium text-[#1E3A8A] transition hover:bg-[#1E3A8A]/15 dark:border-[#93C5FD]/20 dark:bg-[#1E3A8A]/35 dark:text-[#DBEAFE] dark:hover:bg-[#1E3A8A]/50"
-            >
-              <span className="flex size-6 items-center justify-center rounded-md bg-[#1E3A8A]/15 dark:bg-white/10">
-                <FileSpreadsheet className="size-3.5" aria-hidden="true" />
-              </span>
-              Load sample data
-            </button>
-            <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
-              See a finished example report instantly
-              <span className="block text-zinc-400 dark:text-zinc-500">(uses sample data)</span>
-            </p>
-          </div>
+        <ExampleReportPreview />
+      </header>
+      <div className="mb-8">
+        <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+          Step {currentStep} of 4: {STEPS.find((step) => step.id === currentStep)?.label}
+        </p>
+        <ol className="mt-3 flex flex-wrap gap-2">
+          {STEPS.map((step) => {
+            const active = step.id === currentStep;
+            const complete = step.id < currentStep;
+            return (
+              <li
+                key={step.id}
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
+                  active
+                    ? 'border-[#1E3A8A] bg-[#1E3A8A] text-white'
+                    : complete
+                      ? 'border-zinc-300 bg-white text-zinc-800 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-100'
+                      : 'border-zinc-300 bg-zinc-100 text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300'
+                }`}
+              >
+                <span>{step.id}</span>
+                {step.label}
+              </li>
+            );
+          })}
+        </ol>
+        <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-200">
+          Output: a branded PDF owner statement, ready to send.
+        </p>
+        {currentStep > 1 ? (
+          <button
+            type="button"
+            onClick={startOver}
+            className="mt-3 text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-950 hover:underline dark:text-zinc-300 dark:hover:text-white"
+          >
+            Start over
+          </button>
         ) : null}
       </div>
 
@@ -212,7 +220,67 @@ export default function HomePage() {
           onStartOver={startOver}
         />
       ) : null}
+      <footer className="mt-16 border-t border-zinc-200 pt-6 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
+        Built by [Your Name] ·{' '}
+        <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-[#1E3A8A] hover:underline dark:text-[#93C5FD]">
+          {CONTACT_EMAIL}
+        </a>
+      </footer>
     </main>
+  );
+}
+
+function ExampleReportPreview() {
+  const figures = [
+    ['Gross income', '$10,600'],
+    ['Expenses', '$2,459'],
+    ['NOI', '$8,141'],
+    ['Distributed', '$7,150'],
+  ];
+  const properties = [
+    ['Maple St Duplex', '$2,750'],
+    ['Oak Ave 4-Plex', '$3,762'],
+    ['Pine Rd Single Family', '$1,629'],
+  ];
+
+  return (
+    <figure className="w-full max-w-56 shrink-0">
+      <figcaption className="mb-2 text-center text-xs font-semibold tracking-[0.14em] text-zinc-700 uppercase dark:text-zinc-200">
+        Example report
+      </figcaption>
+      <div className="overflow-hidden rounded-lg border border-zinc-300 bg-white text-zinc-900 shadow-xl dark:border-zinc-600">
+        <div className="h-1.5 bg-[#1E3A8A]" />
+        <div className="space-y-2.5 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-[10px] leading-tight font-bold">Northshore Property Group</p>
+              <p className="mt-0.5 text-[8px] text-zinc-600">Harborview Holdings</p>
+            </div>
+            <p className="text-right text-[8px] leading-tight font-semibold text-[#1E3A8A]">
+              Monthly Owner
+              <br />
+              Statement
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            {figures.map(([label, value]) => (
+              <div key={label} className="rounded border border-zinc-200 px-1.5 py-1">
+                <p className="text-[7px] tracking-wide text-zinc-500 uppercase">{label}</p>
+                <p className="text-[9px] font-semibold">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="space-y-1 border-t border-zinc-200 pt-2">
+            {properties.map(([name, noi]) => (
+              <div key={name} className="flex items-center justify-between gap-2 text-[8px]">
+                <span className="truncate text-zinc-700">{name}</span>
+                <span className="font-semibold">{noi}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </figure>
   );
 }
 
