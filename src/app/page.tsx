@@ -211,10 +211,14 @@ function Step4Preview({
   onBack: () => void;
 }) {
   const figures = [
-    { label: 'Gross Income', value: money.format(summary.totalIncome) },
-    { label: 'Total Expenses', value: money.format(summary.totalExpenses) },
-    { label: 'Net Operating Income', value: money.format(summary.netOperatingIncome) },
-    { label: 'Cash Distributed', value: money.format(summary.totalDistributed) },
+    { label: 'Gross Income', value: money.format(summary.totalIncome), negative: false },
+    { label: 'Total Expenses', value: money.format(summary.totalExpenses), negative: false },
+    {
+      label: 'Net Operating Income',
+      value: formatAccounting(summary.netOperatingIncome),
+      negative: summary.netOperatingIncome < 0,
+    },
+    { label: 'Cash Distributed', value: money.format(summary.totalDistributed), negative: false },
   ];
 
   return (
@@ -236,7 +240,13 @@ function Step4Preview({
               className="rounded-xl border border-zinc-200 bg-white px-3 py-3 dark:border-zinc-800 dark:bg-zinc-900"
             >
               <dt className="text-xs text-zinc-500 dark:text-zinc-400">{figure.label}</dt>
-              <dd className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{figure.value}</dd>
+              <dd
+                className={`mt-1 text-sm font-semibold ${
+                  figure.negative ? 'text-[#DC2626]' : 'text-zinc-950 dark:text-zinc-50'
+                }`}
+              >
+                {figure.value}
+              </dd>
             </div>
           ))}
         </dl>
@@ -254,8 +264,12 @@ function Step4Preview({
             {summary.byProperty.map((property) => (
               <li key={property.property} className="flex items-center justify-between gap-3 py-2">
                 <span className="text-zinc-800 dark:text-zinc-200">{property.property}</span>
-                <span className="font-medium text-zinc-950 dark:text-zinc-50">
-                  {money.format(property.noi)} NOI
+                <span
+                  className={`font-medium ${
+                    property.noi < 0 ? 'text-[#DC2626]' : 'text-zinc-950 dark:text-zinc-50'
+                  }`}
+                >
+                  {formatAccounting(property.noi)} NOI
                 </span>
               </li>
             ))}
@@ -275,6 +289,11 @@ function Step4Preview({
       </div>
     </section>
   );
+}
+
+function formatAccounting(value: number): string {
+  if (value < 0) return `(${money.format(Math.abs(value))})`;
+  return money.format(value);
 }
 
 function createPlaceholderLogo(color: string): string | null {

@@ -18,7 +18,10 @@ const money = new Intl.NumberFormat('en-US', {
   currency: 'USD',
 });
 
+const NEGATIVE_COLOR = '#DC2626';
+
 const SECTIONS: { type: RawTransaction['type']; title: string; totalLabel: string }[] = [
+  { type: 'Opening', title: 'Opening balance', totalLabel: 'Beginning cash' },
   { type: 'Income', title: 'Income', totalLabel: 'Total income' },
   { type: 'Expense', title: 'Expenses', totalLabel: 'Total expenses' },
   { type: 'Distribution', title: 'Distributions', totalLabel: 'Total distributed' },
@@ -396,14 +399,15 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
   const note = notes.trim();
   const expenseCategories = summary.expensesByCategory.slice(0, 6);
   const largestExpense = expenseCategories.reduce((max, item) => Math.max(max, item.amount), 0);
-  const beginningCash = 0;
+  const hasOpeningBalance = summary.openingBalance !== undefined;
+  const beginningCash = summary.openingBalance ?? 0;
   const endingCash =
     Math.round((beginningCash + summary.netOperatingIncome - summary.totalDistributed) * 100) / 100;
   const kpis = [
-    { label: 'Gross Income', value: money.format(summary.totalIncome) },
-    { label: 'Total Expenses', value: money.format(summary.totalExpenses) },
-    { label: 'Net Operating Income', value: money.format(summary.netOperatingIncome) },
-    { label: 'Cash Distributed', value: money.format(summary.totalDistributed) },
+    { label: 'Gross Income', value: summary.totalIncome },
+    { label: 'Total Expenses', value: summary.totalExpenses },
+    { label: 'Net Operating Income', value: summary.netOperatingIncome, emphasizeSign: true },
+    { label: 'Cash Distributed', value: summary.totalDistributed },
   ];
 
   return (
@@ -436,7 +440,9 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
             >
               <View style={[styles.kpiRule, { backgroundColor: accent }]} />
               <Text style={styles.kpiLabel}>{kpi.label}</Text>
-              <Text style={styles.kpiValue}>{kpi.value}</Text>
+              <Text style={[styles.kpiValue, amountStyle(kpi.value, kpi.emphasizeSign)]}>
+                {formatAmount(kpi.value, kpi.emphasizeSign)}
+              </Text>
             </View>
           ))}
         </View>
@@ -464,7 +470,9 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
                   <Text style={[styles.cell, styles.propertyName]}>{property.property}</Text>
                   <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.income)}</Text>
                   <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.expenses)}</Text>
-                  <Text style={[styles.cell, styles.moneyCol]}>{money.format(property.noi)}</Text>
+                  <Text style={[styles.cell, styles.moneyCol, amountStyle(property.noi, true)]}>
+                {formatAmount(property.noi, true)}
+              </Text>
                 </View>
               ))
             )}
@@ -472,7 +480,9 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.boldMoney}>{money.format(summary.totalIncome)}</Text>
               <Text style={styles.boldMoney}>{money.format(summary.totalExpenses)}</Text>
-              <Text style={styles.boldMoney}>{money.format(summary.netOperatingIncome)}</Text>
+              <Text style={[styles.boldMoney, amountStyle(summary.netOperatingIncome, true)]}>
+            {formatAmount(summary.netOperatingIncome, true)}
+          </Text>
           </View>
         </View>
 
@@ -509,11 +519,15 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
               <View style={styles.cashBox} wrap={false}>
                 <View style={styles.cashLine}>
                   <Text style={styles.cashLabel}>Beginning Cash / Reserves</Text>
-                  <Text style={styles.cashAmount}>{money.format(beginningCash)}</Text>
+                  <Text style={[styles.cashAmount, amountStyle(beginningCash, true)]}>
+                    {formatAmount(beginningCash, true)}
+                  </Text>
                 </View>
                 <View style={styles.cashLine}>
                   <Text style={styles.cashLabel}>Net Operating Income</Text>
-                  <Text style={styles.cashAmount}>+ {money.format(summary.netOperatingIncome)}</Text>
+                  <Text style={[styles.cashAmount, amountStyle(summary.netOperatingIncome, true)]}>
+                    {signedAmount(summary.netOperatingIncome, '+')}
+                  </Text>
                 </View>
                 <View style={styles.cashLine}>
                   <Text style={styles.cashLabel}>Cash Distributed</Text>
@@ -522,13 +536,15 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
                 <View style={styles.cashDivider} />
                 <View style={[styles.cashLine, { marginBottom: 0 }]}>
                   <Text style={styles.cashTotalLabel}>Ending Cash Retained</Text>
-                  <Text style={[styles.cashTotalAmount, { color: accent }]}>
-                    {money.format(endingCash)}
+                  <Text style={[styles.cashTotalAmount, amountStyle(endingCash, true, accent)]}>
+                    {formatAmount(endingCash, true)}
                   </Text>
                 </View>
-                <Text style={styles.cashNote}>
-                  Opening balance was not in this export, so reserves start at $0.00.
-                </Text>
+                {hasOpeningBalance ? null : (
+                  <Text style={styles.cashNote}>
+                    Opening balance was not in this export, so reserves start at $0.00.
+                  </Text>
+                )}
               </View>
             </View>
           </View>
@@ -572,18 +588,24 @@ export function OwnerReportPDF({ brand, summary, notes }: OwnerReportPDFProps) {
                       <Text style={[styles.cell, styles.descriptionCol]} hyphenationCallback={keepWholeWord}>
                         {transaction.description}
                       </Text>
-                      <Text style={[styles.cell, styles.moneyCol]}>{money.format(transaction.amount)}</Text>
+                      <Text style={[styles.cell, styles.moneyCol, amountStyle(transaction.amount, true)]}>
+                        {formatAmount(transaction.amount, true)}
+                      </Text>
                     </View>
                   ))}
                   <View style={styles.subtotalRow} wrap={false}>
                     <Text style={styles.subtotalLabel}>{group.category} subtotal</Text>
-                    <Text style={styles.boldMoney}>{money.format(group.total)}</Text>
+                    <Text style={[styles.boldMoney, amountStyle(group.total, true)]}>
+                      {formatAmount(group.total, true)}
+                    </Text>
                   </View>
                 </View>
               ))}
               <View style={styles.sectionTotal} wrap={false}>
                 <Text style={styles.sectionTotalLabel}>{section.totalLabel}</Text>
-                <Text style={styles.sectionTotalAmount}>{money.format(sectionTotal)}</Text>
+                <Text style={[styles.sectionTotalAmount, amountStyle(sectionTotal, true)]}>
+                  {formatAmount(sectionTotal, true)}
+                </Text>
               </View>
             </View>
           );
@@ -638,6 +660,21 @@ function formatDate(value: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(date);
+}
+
+function formatAmount(value: number, showSign = false): string {
+  if (showSign && value < 0) return `(${money.format(Math.abs(value))})`;
+  return money.format(value);
+}
+
+function signedAmount(value: number, sign: '+' | '−'): string {
+  if (value < 0) return formatAmount(value, true);
+  return `${sign} ${money.format(value)}`;
+}
+
+function amountStyle(value: number, showSign = false, positiveColor?: string) {
+  if (showSign && value < 0) return { color: NEGATIVE_COLOR };
+  return positiveColor ? { color: positiveColor } : {};
 }
 
 function normalizeColor(value: string): string {

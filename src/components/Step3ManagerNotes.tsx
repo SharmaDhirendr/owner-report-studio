@@ -44,10 +44,17 @@ export function Step3ManagerNotes({
 }: Step3ManagerNotesProps) {
   const notesId = useId();
   const figures = [
-    { label: 'Gross Income', value: money.format(summary.totalIncome) },
-    { label: 'Total Expenses', value: money.format(summary.totalExpenses) },
-    { label: 'Net Operating Income', value: money.format(summary.netOperatingIncome) },
-    { label: 'Cash Distributed', value: money.format(summary.totalDistributed) },
+    { label: 'Gross Income', value: money.format(summary.totalIncome), negative: false },
+    { label: 'Total Expenses', value: money.format(summary.totalExpenses), negative: false },
+    {
+      label: 'Net Operating Income',
+      value:
+        summary.netOperatingIncome < 0
+          ? `(${money.format(Math.abs(summary.netOperatingIncome))})`
+          : money.format(summary.netOperatingIncome),
+      negative: summary.netOperatingIncome < 0,
+    },
+    { label: 'Cash Distributed', value: money.format(summary.totalDistributed), negative: false },
   ];
 
   return (
@@ -72,7 +79,13 @@ export function Step3ManagerNotes({
             {figures.map((figure) => (
               <div key={figure.label} className="rounded-xl bg-zinc-50 px-3 py-3 dark:bg-zinc-950">
                 <dt className="text-xs text-zinc-500 dark:text-zinc-400">{figure.label}</dt>
-                <dd className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{figure.value}</dd>
+                <dd
+                  className={`mt-1 text-sm font-semibold ${
+                    figure.negative ? 'text-[#DC2626]' : 'text-zinc-950 dark:text-zinc-50'
+                  }`}
+                >
+                  {figure.value}
+                </dd>
               </div>
             ))}
           </dl>

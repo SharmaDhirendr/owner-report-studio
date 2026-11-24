@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from 'rea
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { ArrowLeft, ArrowRight, FileSpreadsheet, Table2, Upload } from 'lucide-react';
+import { isOpeningBalance } from '@/lib/openingBalance';
 import type { ColumnMapping, RawTransaction } from '@/types/report';
 import { sampleTransactions } from '@/lib/sampleData';
 import { calculateReportSummary } from '@/lib/calculator';
@@ -278,7 +279,11 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
             <dl className="mt-4 grid grid-cols-2 gap-3">
               <SummaryStat label="Gross Income" value={money.format(summary.totalIncome)} />
               <SummaryStat label="Total Expenses" value={money.format(summary.totalExpenses)} />
-              <SummaryStat label="NOI" value={money.format(summary.netOperatingIncome)} />
+              <SummaryStat
+                label="NOI"
+                value={summary.netOperatingIncome < 0 ? `(${money.format(Math.abs(summary.netOperatingIncome))})` : money.format(summary.netOperatingIncome)}
+                negative={summary.netOperatingIncome < 0}
+              />
               <SummaryStat label="Distributions" value={money.format(summary.totalDistributed)} />
             </dl>
           </div>
@@ -312,11 +317,13 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
   );
 }
 
-function SummaryStat({ label, value }: { label: string; value: string }) {
+function SummaryStat({ label, value, negative = false }: { label: string; value: string; negative?: boolean }) {
   return (
     <div className="rounded-xl bg-zinc-50 px-3 py-3 dark:bg-zinc-950">
       <dt className="text-xs text-zinc-500 dark:text-zinc-400">{label}</dt>
-      <dd className="mt-1 text-sm font-semibold text-zinc-950 dark:text-zinc-50">{value}</dd>
+      <dd className={`mt-1 text-sm font-semibold ${negative ? 'text-[#DC2626]' : 'text-zinc-950 dark:text-zinc-50'}`}>
+        {value}
+      </dd>
     </div>
   );
 }
@@ -395,13 +402,14 @@ function rowsToTransactions(rows: Record<string, unknown>[], mapping: ColumnMapp
     const description = cellText(row[mapping.description]);
     const typeText = cellText(row[mapping.type]);
 
+    const type = classifyType(typeText, category, description, parsed.negative);
     transactions.push({
       property,
       date,
       category,
       description,
-      type: classifyType(typeText, category, description, parsed.negative),
-      amount: parsed.amount,
+      type,
+      amount: type === 'Opening' && parsed.negative ? -parsed.amount : parsed.amount,
     });
   }
 
@@ -414,6 +422,8 @@ function classifyType(
   description: string,
   negative: boolean,
 ): RawTransaction['type'] {
+  if (isOpeningBalance(typeText, category, description)) return 'Opening';
+
   const combined = `${typeText} ${category} ${description}`.toLowerCase();
   if (combined.includes('distribution') || combined.includes('owner draw')) return 'Distribution';
 

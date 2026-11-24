@@ -11,7 +11,7 @@ export interface RawTransaction {
   date: string;
   category: string;
   description: string;
-  type: 'Income' | 'Expense' | 'Distribution';
+  type: 'Income' | 'Expense' | 'Distribution' | 'Opening';
   amount: number;
 }
 
@@ -29,6 +29,8 @@ export interface ReportSummary {
   totalExpenses: number;
   netOperatingIncome: number;
   totalDistributed: number;
+  /** Present when the ledger includes opening or beginning balance rows. */
+  openingBalance?: number;
   byProperty: { property: string; income: number; expenses: number; noi: number }[];
   expensesByCategory: { category: string; amount: number; percentage: number }[];
   transactions: RawTransaction[];
