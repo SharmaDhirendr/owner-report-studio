@@ -57,7 +57,7 @@ const FIELD_KEYWORDS: Record<keyof ColumnMapping, string[]> = {
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
 const controlClassName =
-  'w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50';
+  'min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-950 outline-none transition focus:border-[#1E3A8A] focus:ring-2 focus:ring-[#1E3A8A]/20 sm:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50';
 
 export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadMapProps) {
   const fileId = useId();
@@ -197,14 +197,14 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
           }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
-          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-6 py-10 text-center transition ${
+          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed px-4 py-8 text-center transition sm:px-6 sm:py-10 ${
             isDragging
               ? 'border-[#1E3A8A] bg-blue-50 dark:bg-blue-950/30'
               : 'border-zinc-300 bg-white hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900'
           }`}
         >
           <Upload className="size-5 text-zinc-500" aria-hidden="true" />
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="max-w-full text-sm font-medium break-words text-zinc-900 dark:text-zinc-100">
             {sheet ? sheet.fileName : 'Drop a CSV or Excel file'}
           </span>
           <span className="text-xs text-zinc-500 dark:text-zinc-400">or click to browse · .csv, .xlsx</span>
@@ -224,7 +224,7 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
         <button
           type="button"
           onClick={loadSample}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1E40AF]"
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1E40AF]"
         >
           <FileSpreadsheet className="size-4" aria-hidden="true" />
           Load Sample Data
@@ -237,7 +237,7 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
         ) : null}
 
         {sheet && !usingSample ? (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
             <div className="mb-4 flex items-center gap-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
               <Table2 className="size-4 text-zinc-500" aria-hidden="true" />
               Map columns
@@ -271,13 +271,13 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
         ) : null}
 
         {summary ? (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Reconciliation</h3>
             <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
               {summary.transactions.length} transactions
               {usingSample ? ' · sample data' : ''}
             </p>
-            <dl className="mt-4 grid grid-cols-2 gap-3">
+            <dl className="mt-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
               <SummaryStat label="Gross Income" value={money.format(summary.totalIncome)} />
               <SummaryStat label="Total Expenses" value={money.format(summary.totalExpenses)} />
               <SummaryStat
@@ -290,11 +290,11 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 sm:w-auto dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
           >
             <ArrowLeft className="size-4" aria-hidden="true" />
             Back
@@ -307,7 +307,7 @@ export function Step2UploadMap({ onDataReady, onBack, onContinue }: Step2UploadM
               onDataReady(transactions);
               onContinue?.();
             }}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1E40AF] disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1E40AF] disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 sm:w-auto dark:disabled:bg-zinc-800 dark:disabled:text-zinc-500"
           >
             Continue
             <ArrowRight className="size-4" aria-hidden="true" />

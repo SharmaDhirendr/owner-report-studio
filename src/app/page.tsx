@@ -99,25 +99,25 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-10">
+    <main className="mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col overflow-x-hidden px-3 py-8 sm:px-4 sm:py-10">
       <div className="mb-6 flex justify-end">
         <a
           href={FEEDBACK_MAILTO}
-          className="text-sm font-medium text-[#1E3A8A] underline-offset-2 hover:underline dark:text-[#93C5FD]"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-[#1E3A8A] underline-offset-2 hover:underline dark:text-[#93C5FD]"
         >
           Give feedback
         </a>
       </div>
-      <header className="mb-10 flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-between">
-        <div className="max-w-xl text-center lg:text-left">
-          <h1 className="text-3xl font-semibold tracking-tight text-balance text-zinc-950 sm:text-4xl dark:text-zinc-50">
+      <header className="mb-8 flex flex-col items-center gap-8 sm:mb-10 lg:flex-row lg:items-start lg:justify-between">
+        <div className="w-full max-w-xl text-center lg:text-left">
+          <h1 className="text-2xl font-semibold tracking-tight text-balance text-zinc-950 sm:text-3xl lg:text-4xl dark:text-zinc-50">
             Turn AppFolio & Buildium exports into branded owner reports
           </h1>
           <p className="mt-3 text-base leading-7 text-pretty text-zinc-700 dark:text-zinc-200">
             Upload your CSV or Excel export, add your branding, and download a clean PDF owner
             statement in under 2 minutes.
           </p>
-          <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
+          <p className="mt-3 text-sm leading-6 text-zinc-600 dark:text-zinc-300">
             Your data stays in your browser. Nothing is uploaded to a server.
           </p>
           {currentStep < 4 ? (
@@ -125,7 +125,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={loadSampleReport}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#1E40AF]"
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] px-6 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-[#1E40AF] sm:w-auto"
               >
                 <FileSpreadsheet className="size-5" aria-hidden="true" />
                 Load sample data
@@ -149,7 +149,7 @@ export default function HomePage() {
             return (
               <li
                 key={step.id}
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${
+                className={`inline-flex min-h-9 items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${
                   active
                     ? 'border-[#1E3A8A] bg-[#1E3A8A] text-white'
                     : complete
@@ -170,7 +170,7 @@ export default function HomePage() {
           <button
             type="button"
             onClick={startOver}
-            className="mt-3 text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-950 hover:underline dark:text-zinc-300 dark:hover:text-white"
+            className="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-zinc-600 underline-offset-2 hover:text-zinc-950 hover:underline dark:text-zinc-300 dark:hover:text-white"
           >
             Start over
           </button>
@@ -180,11 +180,11 @@ export default function HomePage() {
       {currentStep === 1 ? (
         <>
           <Step1BrandSetup settings={brand} onChange={setBrand} />
-          <div className="mx-auto mt-5 flex w-full max-w-lg justify-end">
+          <div className="mx-auto mt-5 flex w-full max-w-lg sm:justify-end">
             <button
               type="button"
               onClick={() => setCurrentStep(2)}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1E40AF]"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1E40AF] sm:w-auto"
             >
               Continue
               <ArrowRight className="size-4" aria-hidden="true" />
@@ -220,11 +220,19 @@ export default function HomePage() {
           onStartOver={startOver}
         />
       ) : null}
-      <footer className="mt-16 border-t border-zinc-200 pt-6 text-sm text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">
-        Built by Dhirendra Sharma ·{' '}
-        <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-[#1E3A8A] hover:underline dark:text-[#93C5FD]">
-          {CONTACT_EMAIL}
-        </a>
+      <footer className="mt-12 border-t border-zinc-200 pt-6 text-sm text-zinc-700 sm:mt-16 dark:border-zinc-800 dark:text-zinc-300">
+        <p className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+          <span>Built by Dhirendra Sharma</span>
+          <span className="hidden sm:inline" aria-hidden="true">
+            ·
+          </span>
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="break-all font-medium text-[#1E3A8A] hover:underline dark:text-[#93C5FD]"
+          >
+            {CONTACT_EMAIL}
+          </a>
+        </p>
       </footer>
     </main>
   );
@@ -244,7 +252,7 @@ function ExampleReportPreview() {
   ];
 
   return (
-    <figure className="w-full max-w-56 shrink-0">
+    <figure className="mx-auto w-full max-w-64 shrink-0 lg:mx-0">
       <figcaption className="mb-2 text-center text-xs font-semibold tracking-[0.14em] text-zinc-700 uppercase dark:text-zinc-200">
         Example report
       </figcaption>
@@ -314,13 +322,13 @@ function Step4Preview({
         <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
           Preview and download
         </h2>
-        <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm leading-6 break-words text-zinc-600 dark:text-zinc-400">
           {brand.companyName} · {brand.ownerName} · {brand.reportPeriod}
         </p>
       </header>
 
       <div className="space-y-5">
-        <dl className="grid grid-cols-2 gap-3">
+        <dl className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
           {figures.map((figure) => (
             <div
               key={figure.label}
@@ -338,21 +346,21 @@ function Step4Preview({
           ))}
         </dl>
 
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
           <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Manager’s notes</h3>
           <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-zinc-600 dark:text-zinc-300">
             {notes.trim() || 'No manager notes were added for this period.'}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5 dark:border-zinc-800 dark:bg-zinc-900">
           <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Properties</h3>
           <ul className="mt-3 divide-y divide-zinc-200 text-sm dark:divide-zinc-800">
             {summary.byProperty.map((property) => (
-              <li key={property.property} className="flex items-center justify-between gap-3 py-2">
-                <span className="text-zinc-800 dark:text-zinc-200">{property.property}</span>
+              <li key={property.property} className="flex items-start justify-between gap-3 py-2.5">
+                <span className="min-w-0 break-words text-zinc-800 dark:text-zinc-200">{property.property}</span>
                 <span
-                  className={`font-medium ${
+                  className={`shrink-0 text-right font-medium ${
                     property.noi < 0 ? 'text-[#DC2626]' : 'text-zinc-950 dark:text-zinc-50'
                   }`}
                 >
@@ -363,19 +371,19 @@ function Step4Preview({
           </ul>
         </div>
 
-        <div className="flex items-center justify-between gap-3 pt-1">
+        <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 sm:w-auto dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
           >
             Back
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={onStartOver}
-              className="inline-flex items-center rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 sm:w-auto dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
               New report
             </button>

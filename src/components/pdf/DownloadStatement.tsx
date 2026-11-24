@@ -16,7 +16,7 @@ export function DownloadStatement({ brand, summary, notes }: DownloadStatementPr
     <PDFDownloadLink
       document={<OwnerReportPDF brand={brand} summary={summary} notes={notes} />}
       fileName={statementFileName(brand)}
-      className="inline-flex items-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1E40AF]"
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1E3A8A] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1E40AF] sm:w-auto"
     >
       {({ loading }) => (
         <>

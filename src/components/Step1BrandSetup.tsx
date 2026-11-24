@@ -13,7 +13,7 @@ type Step1BrandSetupProps = {
 };
 
 const inputClassName =
-  'w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500';
+  'min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 sm:text-sm dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-500';
 
 export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
   const companyId = useId();
@@ -97,7 +97,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
       className="mx-auto w-full max-w-lg"
       style={{ '--brand': primaryColor } as CSSProperties}
     >
-      <header className="mb-8">
+      <header className="mb-6 sm:mb-8">
         <p className="text-xs font-semibold tracking-[0.16em] uppercase" style={{ color: primaryColor }}>
           Step 1 of 4
         </p>
@@ -109,7 +109,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
         </p>
       </header>
 
-      <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="space-y-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <div>
           <label
             htmlFor={companyId}
@@ -134,7 +134,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
             <Upload className="size-4 text-zinc-500" aria-hidden="true" />
             Logo
           </span>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             {settings.logoBase64 ? (
               <div className="relative shrink-0">
                 {/* Data URLs from the file picker are not supported by next/image. */}
@@ -148,7 +148,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
                   type="button"
                   onClick={clearLogo}
                   aria-label="Remove logo"
-                  className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm hover:text-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                  className="absolute -top-2 -right-2 flex size-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm hover:text-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
                 >
                   <X className="size-3" aria-hidden="true" />
                 </button>
@@ -156,7 +156,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
             ) : null}
             <label
               htmlFor={logoId}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:border-[var(--brand)] hover:text-zinc-950 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-zinc-50"
+              className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-[var(--brand)] hover:text-zinc-950 dark:border-zinc-600 dark:text-zinc-300 dark:hover:text-zinc-50"
             >
               <Upload className="size-4" aria-hidden="true" />
               {settings.logoBase64 ? 'Replace logo' : 'Upload logo'}
@@ -186,7 +186,7 @@ export function Step1BrandSetup({ settings, onChange }: Step1BrandSetupProps) {
               type="color"
               value={primaryColor}
               onChange={(event) => update({ primaryColor: event.target.value.toUpperCase() })}
-              className="h-10 w-14 cursor-pointer rounded-lg border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-950"
+              className="h-11 w-16 cursor-pointer rounded-lg border border-zinc-300 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-950"
             />
             <span className="font-mono text-sm text-zinc-600 dark:text-zinc-400">{primaryColor}</span>
           </div>
